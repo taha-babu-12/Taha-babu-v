@@ -1,27 +1,101 @@
-module.exports.config = {
-  name: "hotdp",
-  version: "1.0.0",
-  hasPermssion: 0,
-  credits: "SHAAN",
-  description: "Boys Dp photos",
-  commandCategory: "Admin",
-  usages: "hot",
-  cooldowns: 2,
-  dependencies: {
-    "request":"",
-    "fs-extra":"",
-    "axios":""
+const axios = require("axios");
+const fs = require("fs-extra");
+const path = require("path");
+
+module.exports = {
+  config: {
+    name: "hotdp",
+    aliases: [], 
+    version: "3.0.0",
+    author: "TAHA KHAN",
+    countDown: 3,
+    role: 0,
+    category: "image",
+    description: { en: "Get a High-Quality Hot DP from Pinterest", ur: "High-Quality Hot DP hasil karo" },
+    guide: { en: "{pn}", ur: "{pn}" }
+  },
+
+  QUERIES: [
+    "Hot+dpz+",
+    "stylish+girl+dp",
+    "cute+girl+dp",
+    "aesthetic+girl+dp"
+  ],
+
+  async onStart({ api, event, message }) {
+    const { threadID, messageID, senderID } = event;
+
+    if (api.setMessageReaction) api.setMessageReaction("⏳", messageID, () => {}, true);
+
+    const cacheDir = path.join(__dirname, "cache");
+    await fs.ensureDir(cacheDir);
+    const filePath = path.join(cacheDir, `hotdp_${senderID}_${Date.now()}.jpg`);
+
+    let success = false;
+    let errorMsg = "";
+
+    for (const query of this.QUERIES) {
+      if (success) break;
+      
+      try {
+        const url = `https://api.nexray.eu.cc/search/pinterest?q=${query}`;
+        const { data } = await axios.get(url, { timeout: 10000 });
+
+        if (data.status && data.result && data.result.length > 0) {
+          const randomIndex = Math.floor(Math.random() * data.result.length);
+          let imgUrl = data.result[randomIndex].images_url;
+
+          if (!imgUrl) continue;
+
+          const res = await axios.get(imgUrl, { responseType: "stream", timeout: 20000 });
+          const writer = fs.createWriteStream(filePath);
+          res.data.pipe(writer);
+
+          await new Promise((resolve, reject) => {
+            writer.on("finish", resolve);
+            writer.on("error", reject);
+          });
+
+          const stats = await fs.stat(filePath);
+          if (stats.size > 5000) {
+            success = true;
+            break;
+          }
+        }
+      } catch (e) {
+        errorMsg = e.message;
+        continue;
+      }
+    }
+
+    try {
+      if (!success) {
+        throw new Error("Images download nahi ho payi. API fail ho rahi hai.");
+      }
+
+      if (api.setMessageReaction) api.setMessageReaction("✅", messageID, () => {}, true);
+
+      await message.reply({
+        body: 
+          `╭─────────────────────╮\n` +
+          `     📸 𝐅𝐮𝐥𝐥 𝐇𝐨𝐭 𝐃𝐏 📸\n` +
+          `╰─────────────────────╯\n\n` +
+          `✨ Lijiye apki Full HD DP hazir hai!\n` +
+          `💖 Ye lo apni profile mein lagao.\n\n` +
+          `┏━━━━━━━━━━━━━━━━━━━━━┓\n` +
+          `    ⚡ 𝐓𝐀𝐇𝐀 𝐊𝐇𝐀𝐍 ⚡\n` +
+          `┗━━━━━━━━━━━━━━━━━━━━━┛`,
+        attachment: fs.createReadStream(filePath)
+      });
+
+      setTimeout(() => fs.unlink(filePath).catch(() => {}), 5000);
+
+    } catch (err) {
+      console.error("[HotDP Error]", err.message);
+      if (api.setMessageReaction) api.setMessageReaction("❌", messageID, () => {}, true);
+      await fs.unlink(filePath).catch(() => {});
+      
+      return message.reply(`❌ Image laane mein masla aaya. Thodi der baad try karo.`);
+    }
   }
-
 };
-
-module.exports.run = async({api,event,args,Users,Threads,Currencies}) => {
-const axios = global.nodemodule["axios"];
-const request = global.nodemodule["request"];
-const fs = global.nodemodule["fs-extra"];
-    var link = [
-"https://i.imgur.com/yjwQQsv.jpg","https://i.imgur.com/bMuOehO.jpg","https://i.imgur.com/2N3AFR7.jpg","https://i.imgur.com/xzBD0ix.jpg","https://i.imgur.com/xTqk7WU.jpg","https://i.imgur.com/SoT9yiF.jpg","https://i.imgur.com/U7ObQKZ.jpg","https://i.imgur.com/mGTgUIo.jpg","https://i.imgur.com/5i8c062.jpg","https://i.imgur.com/7P284Ef.jpg","https://i.imgur.com/zHljRae.jpg","https://i.imgur.com/7c3trME.jpg","https://i.imgur.com/dU7Q9G2.jpg","https://i.imgur.com/or0X9VR.jpg","https://i.imgur.com/1pWtonH.jpg","https://i.imgur.com/vRQNUdC.jpg","https://i.imgur.com/UkFkap5.jpg","https://i.imgur.com/97CPa6I.jpg","https://i.imgur.com/bbaFITj.jpg","https://i.imgur.com/cAqL7Be.jpg","https://i.imgur.com/zFcFMIl.jpg","https://i.imgur.com/BYZHrmg.jpg","https://i.imgur.com/iqbMDA0.jpg","https://i.imgur.com/VtGk5Kd.jpg","https://i.imgur.com/co0WWby.jpg","https://i.imgur.com/c7FLjDU.jpg","https://i.imgur.com/udAHrZ2.jpg","https://i.imgur.com/hSxC0Vm.jpg","https://i.imgur.com/mjGUUYz.jpg","https://i.imgur.com/uvJk8jw.jpg","https://i.imgur.com/zHVUxOn.jpg","https://i.imgur.com/WFC5vWV.jpg","https://i.imgur.com/nnM8JlY.jpg","https://i.imgur.com/CuFYVko.jpg","https://i.imgur.com/LAKYcnn.jpg","https://i.imgur.com/VhTssee.jpg","https://i.imgur.com/DXqJzRP.jpg","https://i.imgur.com/KFbDLrv.jpg","https://i.imgur.com/JocSABV.jpg","https://i.imgur.com/PB0dg8c.jpg","https://i.imgur.com/5gllMiy.jpg","https://i.imgur.com/aS8qCAE.jpg","https://i.imgur.com/z1iKMf7.jpg","https://i.imgur.com/X3PQnPb.jpg","https://i.imgur.com/d4db0rY.jpg","https://i.imgur.com/6kjfe2s.jpg","https://i.imgur.com/hf6tfLl.jpg","https://i.imgur.com/RF3Sze5.jpg","https://i.imgur.com/khJQrvO.jpg","https://i.imgur.com/VTmPBc0.jpg","https://i.imgur.com/KiccOK1.jpg","https://i.imgur.com/pVvPxRS.jpg","https://i.imgur.com/ko2yNHY.jpg","https://i.imgur.com/4xoDs60.jpg","https://i.imgur.com/7C3nisi.jpg","https://i.imgur.com/moOFGSf.jpg","https://i.imgur.com/206q38t.jpg",
-  ];
-     var callback = () => api.sendMessage({body:`\n☟  ========== ☟ ==========  ☟                                                         ●===========================●                              𝐎𝐰𝐧𝐞𝐫 ➻  ──── 💐𝐒𝐇𝐀𝐀𝐍💐\n\n\n`,attachment: fs.createReadStream(__dirname + "/cache/1.jpg")}, event.threadID, () => fs.unlinkSync(__dirname + "/cache/1.jpg"));  
-      return request(encodeURI(link[Math.floor(Math.random() * link.length)])).pipe(fs.createWriteStream(__dirname+"/cache/1.jpg")).on("close",() => callback());
-   };
