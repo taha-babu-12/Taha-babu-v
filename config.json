@@ -22,7 +22,7 @@
         "61594631294776"
     ],
     "NDH": [
-        "100075933317520"
+        "61590284352509"
     ],
     "DATABASE": {
         "sqlite": {
@@ -56,7 +56,7 @@
         "cooldownTime": 3000000
     },
     "gif": {
-     "unsendReaction": "🖤",
+     "unsendReaction": "😠",
         "TENOR": "73YIAOY3ACT1"
     },
     "instagram": {
